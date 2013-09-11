@@ -1202,9 +1202,21 @@ static CGFloat edgeSizeFromCornerRadius(CGFloat cornerRadius) {
         viewController = aViewController;
         popoverLayoutMargins = UIEdgeInsetsMake(10, 10, 10, 10);
         keyboardRect = CGRectZero;
+        
+        [viewController addObserver:self forKeyPath:@"contentSizeForViewInPopover" options:NSKeyValueObservingOptionNew context:nil];
     }
     
     return self;
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
+{
+    if ([keyPath isEqualToString:@"contentSizeForViewInPopover"]) {
+        [self positionPopover];
+    }
+    else {
+        [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
+    }
 }
 
 - (BOOL)isPopoverVisible
@@ -1930,6 +1942,8 @@ NSString* NSStringFromOrientation(NSInteger orientation) {
 
 - (void)dealloc
 {
+    [viewController removeObserver:self forKeyPath:@"contentSizeForViewInPopover"];
+    
     barButtonItem = nil;
     passthroughViews = nil;
     viewController = nil;
