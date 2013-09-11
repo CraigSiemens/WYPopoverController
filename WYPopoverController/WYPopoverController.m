@@ -1236,7 +1236,7 @@ static CGFloat edgeSizeFromCornerRadius(CGFloat cornerRadius) {
     
     if (result.subviews.count > 0)
     {
-        result = [result.subviews objectAtIndex:0];
+        result = [result.subviews lastObject];
     }
 
     return result;
