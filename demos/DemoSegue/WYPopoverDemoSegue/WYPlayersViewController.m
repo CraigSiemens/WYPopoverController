@@ -17,6 +17,8 @@
 {
     WYPopoverController* playerDetailsPopoverController;
     WYPopoverController* testPopoverController;
+    
+    UIPopoverController* standardPopoverController;
 }
 
 - (UIImage *)imageForRating:(int)rating;
@@ -64,12 +66,12 @@
 
 #pragma mark - WYPopoverControllerDelegate
 
-- (BOOL)popoverControllerShouldDismiss:(WYPopoverController *)aPopoverController
+- (BOOL)popoverControllerShouldDismissPopover:(WYPopoverController *)aPopoverController
 {
     return YES;
 }
 
-- (void)popoverControllerDidDismiss:(WYPopoverController *)aPopoverController
+- (void)popoverControllerDidDismissPopover:(WYPopoverController *)aPopoverController
 {
     if (aPopoverController == playerDetailsPopoverController)
     {
@@ -125,12 +127,17 @@
     contentViewController.contentSizeForViewInPopover = CGSizeMake(240, 200);
     contentViewController.title = @"Test";
     
-    UINavigationController* navigationController = [[UINavigationController alloc] initWithRootViewController:contentViewController];
+    //UINavigationController* navigationController = [[UINavigationController alloc] initWithRootViewController:contentViewController];
     
-    testPopoverController = [[WYPopoverController alloc] initWithContentViewController:navigationController];
+    testPopoverController = [[WYPopoverController alloc] initWithContentViewController:contentViewController];
     testPopoverController.delegate = self;
     
     [testPopoverController presentPopoverFromBarButtonItem:sender permittedArrowDirections:WYPopoverArrowDirectionAny animated:YES];
+    
+    /*
+    standardPopoverController = [[UIPopoverController alloc] initWithContentViewController:contentViewController];
+    [standardPopoverController presentPopoverFromBarButtonItem:sender permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
+    */
 }
 
 #pragma mark - WYPlayerDetailsViewControllerDelegate
@@ -189,6 +196,13 @@
 		[self.players removeObjectAtIndex:indexPath.row];
 		[tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
 	}
+}
+
+#pragma mark - UIViewControllerRotation
+
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation
+{
+    return YES;
 }
 
 @end

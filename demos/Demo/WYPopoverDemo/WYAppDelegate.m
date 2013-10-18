@@ -19,12 +19,14 @@
     
     //Appearance 1 (white popover)
     //
-    /*
-    WYPopoverBackgroundView* popoverAppearance = [WYPopoverBackgroundView appearance];
-    [popoverAppearance setTintColor:[UIColor whiteColor]];
     
-    [popoverAppearance setOuterCornerRadius:8];
-    [popoverAppearance setMinOuterCornerRadius:8];
+    WYPopoverBackgroundView* popoverAppearance = [WYPopoverBackgroundView appearance];
+    [popoverAppearance setTintColor:[UIColor colorWithRed:235./255. green:235./255. blue:235./255. alpha:1]];
+    [popoverAppearance setOuterStrokeColor:[UIColor darkGrayColor]];
+    [popoverAppearance setInnerStrokeColor:[UIColor darkGrayColor]];
+    [popoverAppearance setOuterCornerRadius:10];
+    [popoverAppearance setMinOuterCornerRadius:10];
+    
     [popoverAppearance setOuterShadowBlurRadius:6];
     [popoverAppearance setOuterShadowColor:[UIColor colorWithWhite:0 alpha:0.65]];
     [popoverAppearance setOuterShadowOffset:CGSizeMake(0, 2)];
@@ -36,18 +38,19 @@
     [popoverAppearance setArrowHeight:20];
     [popoverAppearance setArrowBase:42];
     
-    [popoverAppearance setInnerCornerRadius:4];
+    [popoverAppearance setInnerCornerRadius:10];
     [popoverAppearance setInnerShadowBlurRadius:3];
     [popoverAppearance setInnerShadowColor:[UIColor colorWithWhite:0 alpha:0.75]];
     [popoverAppearance setInnerShadowOffset:CGSizeMake(0, 1)];
+    
+    [popoverAppearance setViewContentInsets:UIEdgeInsetsMake(3, 0, 0, 0)];
     
     UINavigationBar* navBarAppearance = [UINavigationBar appearanceWhenContainedIn:[WYPopoverBackgroundView class], [UINavigationController class], nil];
     [navBarAppearance setTitleTextAttributes:@{
                    UITextAttributeTextColor : [UIColor darkGrayColor],
               UITextAttributeTextShadowColor: [UIColor whiteColor],
-             UITextAttributeTextShadowOffset: [NSValue valueWithUIOffset:UIOffsetMake(0, -1)]
+             UITextAttributeTextShadowOffset: [NSValue valueWithUIOffset:UIOffsetMake(0, 0)]
     }];
-    */
     
     //Appearance 2 (orange popover)
     //

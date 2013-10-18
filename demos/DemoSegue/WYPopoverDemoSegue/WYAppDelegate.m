@@ -11,10 +11,25 @@
 #import "WYPlayersViewController.h"
 #import "WYPopoverController.h"
 
+@interface UITabBarController (WYPopoverDemo)
+@end
+
+@implementation UITabBarController (WYPopoverDemo)
+
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation
+{
+    return YES;
+}
+
+@end
+
 @implementation WYAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    /*
+    UIColor* whyerColor = [UIColor colorWithRed:198./255. green:0./255. blue:94./255. alpha:1];
+
     WYPopoverBackgroundView* popoverAppearance = [WYPopoverBackgroundView appearance];
 
     [popoverAppearance setTintColor:[UIColor colorWithRed:63./255. green:92./255. blue:128./255. alpha:1]];
@@ -39,12 +54,43 @@
     [popoverAppearance setInnerShadowBlurRadius:3];
     [popoverAppearance setInnerShadowOffset:CGSizeMake(0, 0.5)];
     
-    UINavigationBar* navBarAppearance = [UINavigationBar appearanceWhenContainedIn:[UINavigationController class], [WYPopoverBackgroundView class], nil];
+    [popoverAppearance setFillTopColor:[UIColor colorWithWhite:1 alpha:1]];
+    [popoverAppearance setFillBottomColor:whyerColor];
+    */
+    
+    WYPopoverBackgroundView* popoverAppearance = [WYPopoverBackgroundView appearance];
+    
+    [popoverAppearance setOuterCornerRadius:16];
+    [popoverAppearance setOuterShadowBlurRadius:4];
+    [popoverAppearance setOuterShadowOffset:CGSizeMake(0, 1)];
+    
+    [popoverAppearance setGlossShadowColor:[UIColor clearColor]];
+    [popoverAppearance setGlossShadowOffset:CGSizeMake(0, 0)];
+    
+    [popoverAppearance setBorderWidth:0]; // Breaks
+    [popoverAppearance setArrowHeight:12];
+    [popoverAppearance setArrowBase:20];
+    
+    [popoverAppearance setInnerCornerRadius:8];
+    [popoverAppearance setInnerShadowBlurRadius:0];
+    [popoverAppearance setInnerShadowColor:[UIColor clearColor]];
+    [popoverAppearance setInnerShadowOffset:CGSizeMake(0, 0)];
+    
+    UIColor *uniformColor = [UIColor colorWithRed:0.9 green:0.9 blue:0.9 alpha:1];
+    
+    [popoverAppearance setFillTopColor:uniformColor];
+    [popoverAppearance setFillBottomColor:uniformColor];
+    [popoverAppearance setOuterStrokeColor:uniformColor];
+    [popoverAppearance setInnerStrokeColor:uniformColor];
+    
+    /*
+    UINavigationBar *navBarAppearance = [UINavigationBar appearanceWhenContainedIn:[UINavigationController class], [WYPopoverBackgroundView class], nil];
     [navBarAppearance setTitleTextAttributes:@{
-                   UITextAttributeTextColor : [UIColor whiteColor],
-              UITextAttributeTextShadowColor: [UIColor colorWithWhite:0 alpha:0.8],
-             UITextAttributeTextShadowOffset: [NSValue valueWithUIOffset:UIOffsetMake(0, -1)]
+                   UITextAttributeTextColor : [UIColor blackColor],
+              UITextAttributeTextShadowColor: [UIColor clearColor],
+             UITextAttributeTextShadowOffset: [NSValue valueWithUIOffset:UIOffsetZero]
     }];
+    */
     
     NSArray *temp = [NSArray arrayWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"players" ofType:@"plist"]];
     

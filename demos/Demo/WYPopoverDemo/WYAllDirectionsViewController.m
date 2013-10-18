@@ -9,10 +9,13 @@
 #import "WYSettingsViewController.h"
 #import "WYAnotherViewController.h"
 
-@interface WYAllDirectionsViewController ()
+@interface WYAllDirectionsViewController () <WYPopoverControllerDelegate>
 {
-    WYPopoverController* popoverController;
+    WYPopoverController* settingsPopoverController;
+    WYPopoverController* anotherPopoverController;
 }
+
+- (IBAction)showPopover:(id)sender;
 
 @end
 
@@ -34,6 +37,11 @@
 {
     [super viewDidLoad];
     
+    if ([self respondsToSelector:@selector(setEdgesForExtendedLayout:)])
+    {
+        self.edgesForExtendedLayout = UIRectEdgeNone;
+    }
+    
     UIImage* normal = [[UIImage imageNamed:@"button-normal"] stretchableImageWithLeftCapWidth:16 topCapHeight:0];
     UIImage* highlighted = [[UIImage imageNamed:@"button-highlighted"] stretchableImageWithLeftCapWidth:16 topCapHeight:0];
     
@@ -48,25 +56,34 @@
     [bottomRightButton setBackgroundImage:normal forState:UIControlStateNormal]; [bottomRightButton setBackgroundImage:highlighted forState:UIControlStateHighlighted];
 }
 
-- (IBAction)tapOnButton:(id)sender
+- (IBAction)showPopover:(id)sender
 {
-    if (popoverController == nil)
+    if (settingsPopoverController == nil)
     {
         UIView* btn = (UIView*)sender;
         
-        WYSettingsViewController* settingsViewController = [[WYSettingsViewController alloc] init];
-        settingsViewController.contentSizeForViewInPopover = CGSizeMake(280, 200);
+        WYSettingsViewController *settingsViewController = [self.storyboard instantiateViewControllerWithIdentifier:@"WYSettingsViewController"];
+        
+        if ([settingsViewController respondsToSelector:@selector(setPreferredContentSize:)]) {
+            settingsViewController.preferredContentSize = CGSizeMake(280, 200);             // iOS 7
+        }
+        else {
+            settingsViewController.contentSizeForViewInPopover = CGSizeMake(280, 200);      // iOS < 7
+        }
+        
         settingsViewController.title = @"Settings";
         [settingsViewController.navigationItem setRightBarButtonItem:[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(done:)]];
         
+        settingsViewController.modalInPopover = NO;
+        
         UINavigationController* contentViewController = [[UINavigationController alloc] initWithRootViewController:settingsViewController];
         
-        popoverController = [[WYPopoverController alloc] initWithContentViewController:contentViewController];
-        popoverController.delegate = self;
-        popoverController.passthroughViews = @[btn];
-        popoverController.popoverLayoutMargins = UIEdgeInsetsMake(10, 10, 10, 10);
-        popoverController.wantsDefaultContentAppearance = NO;
-        [popoverController presentPopoverFromRect:btn.bounds inView:btn permittedArrowDirections:WYPopoverArrowDirectionAny animated:YES];
+        settingsPopoverController = [[WYPopoverController alloc] initWithContentViewController:contentViewController];
+        settingsPopoverController.delegate = self;
+        settingsPopoverController.passthroughViews = @[btn];
+        settingsPopoverController.popoverLayoutMargins = UIEdgeInsetsMake(10, 10, 10, 10);
+        settingsPopoverController.wantsDefaultContentAppearance = NO;
+        [settingsPopoverController presentPopoverFromRect:btn.bounds inView:btn permittedArrowDirections:WYPopoverArrowDirectionAny animated:YES];
     }
     else
     {
@@ -74,26 +91,44 @@
     }
 }
 
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
+{
+    if ([segue.identifier isEqualToString:@"AnotherPopoverSegue"])
+    {
+        WYStoryboardPopoverSegue *popoverSegue = (WYStoryboardPopoverSegue *)segue;
+        anotherPopoverController = [popoverSegue popoverControllerWithSender:sender permittedArrowDirections:WYPopoverArrowDirectionAny animated:YES];
+        anotherPopoverController.delegate = self;
+    }
+}
+
 #pragma mark - Selectors
 
 - (void)done:(id)sender
 {
-    [popoverController dismissPopoverAnimated:YES];
-    popoverController.delegate = nil;
-    popoverController = nil;
+    [settingsPopoverController dismissPopoverAnimated:YES];
+    settingsPopoverController.delegate = nil;
+    settingsPopoverController = nil;
 }
 
 #pragma mark - WYPopoverControllerDelegate
 
-- (BOOL)popoverControllerShouldDismiss:(WYPopoverController *)controller
+- (BOOL)popoverControllerShouldDismissPopover:(WYPopoverController *)controller
 {
     return YES;
 }
 
-- (void)popoverControllerDidDismiss:(WYPopoverController *)controller
+- (void)popoverControllerDidDismissPopover:(WYPopoverController *)controller
 {
-    popoverController.delegate = nil;
-    popoverController = nil;
+    if (controller == settingsPopoverController)
+    {
+        settingsPopoverController.delegate = nil;
+        settingsPopoverController = nil;
+    }
+    else if (controller == anotherPopoverController)
+    {
+        anotherPopoverController.delegate = nil;
+        anotherPopoverController = nil;
+    }
 }
 
 #pragma mark - UIViewControllerRotation
@@ -118,6 +153,15 @@
 - (UIInterfaceOrientation)preferredInterfaceOrientationForPresentation
 {
     return UIInterfaceOrientationPortrait;
+}
+
+- (void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
+{
+    [UIView animateWithDuration:duration animations:^{
+        CGRect frame = self.bottomRightButton.frame;
+        frame.origin.y = (UIInterfaceOrientationIsPortrait(toInterfaceOrientation) ? self.bottomLeftButton.frame.origin.y : frame.origin.y - frame.size.height * 1.25f);
+        self.bottomRightButton.frame = frame;
+    }];
 }
 
 #pragma mark - Memory Management

@@ -30,22 +30,22 @@
 
 - (void)viewWillAppear:(BOOL)animated
 {
-    NSLog(@"view WILL appear");
+    //NSLog(@"view WILL appear");
 }
 
 - (void)viewDidAppear:(BOOL)animated
 {
-    NSLog(@"view DID appear");
+    //NSLog(@"view DID appear");
 }
 
 - (void)viewWillDisappear:(BOOL)animated
 {
-    NSLog(@"view WILL disappear");
+    //NSLog(@"view WILL disappear");
 }
 
 - (void)viewDidDisappear:(BOOL)animated
 {
-    NSLog(@"view DID disappear");
+    //NSLog(@"view DID disappear");
 }
 
 - (void)didReceiveMemoryWarning
@@ -122,7 +122,7 @@
     }
     else
     {
-        WYAnotherViewController *anotherViewController = [[WYAnotherViewController alloc] init];
+        WYAnotherViewController *anotherViewController = [self.storyboard instantiateViewControllerWithIdentifier:@"WYAnotherViewController"];
         [self.navigationController pushViewController:anotherViewController animated:YES];
     }
 }
