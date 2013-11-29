@@ -127,6 +127,14 @@
     }
 }
 
+#pragma mark - Text Field Handler
+
+- (IBAction)textEditingEnded:(id)sender
+{
+    [self.textField resignFirstResponder];
+}
+
+
 #pragma mark - Private
 
 - (void)updateCell:(UITableViewCell*)cell atIndexPath:(NSIndexPath*)indexPath

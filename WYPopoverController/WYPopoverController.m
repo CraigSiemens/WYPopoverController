@@ -538,7 +538,7 @@ static CGFloat edgeSizeFromCornerRadius(CGFloat cornerRadius) {
 @property (nonatomic, assign) WYPopoverArrowDirection arrowDirection;
 
 @property (nonatomic, strong, readonly) UIView *contentView;
-@property (nonatomic, assign, readonly) CGFloat navigationBarHeight;
+@property (nonatomic, assign) CGFloat navigationBarHeight;
 @property (nonatomic, assign, readonly) UIEdgeInsets outerShadowInsets;
 @property (nonatomic, assign) CGFloat arrowOffset;
 @property (nonatomic, assign) BOOL wantsDefaultContentAppearance;
@@ -762,9 +762,6 @@ static CGFloat edgeSizeFromCornerRadius(CGFloat cornerRadius) {
 - (void)setViewController:(UIViewController *)viewController
 {
     contentView = viewController.view;
-    
-    contentView.frame = CGRectMake(0, 0, self.bounds.size.width, 100);
-    
     [self addSubview:contentView];
     
     navigationBarHeight = 0;
@@ -800,7 +797,6 @@ static CGFloat edgeSizeFromCornerRadius(CGFloat cornerRadius) {
     innerView.wantsDefaultContentAppearance = wantsDefaultContentAppearance;
     
     [self insertSubview:innerView aboveSubview:contentView];
-    
     innerView.frame = contentView.frame;
     
     [self.layer setNeedsDisplay];
@@ -1520,6 +1516,7 @@ static CGFloat edgeSizeFromCornerRadius(CGFloat cornerRadius) {
         overlayView.passthroughViews = passthroughViews;
         
         containerView = [[WYPopoverBackgroundView alloc] initWithContentSize:contentViewSize];
+        containerView.navigationBarHeight = [viewController isKindOfClass:[UINavigationController class]] ? 44 : 0;
         
         [overlayView addSubview:containerView];
         
@@ -1666,6 +1663,11 @@ static CGFloat edgeSizeFromCornerRadius(CGFloat cornerRadius) {
 
 - (void)positionPopover
 {
+    [self positionPopover:0];
+}
+
+- (void)positionPopover:(CGFloat)animationDuration
+{
     CGSize contentViewSize = self.contentSizeForViewInPopover;
     
     CGRect viewFrame;
@@ -1695,26 +1697,26 @@ static CGFloat edgeSizeFromCornerRadius(CGFloat cornerRadius) {
     minX -= containerView.outerShadowInsets.left;
     maxX += containerView.outerShadowInsets.right;
     minY -= containerView.outerShadowInsets.top;
-    maxY += containerView.outerShadowInsets.bottom - ((UIInterfaceOrientationIsPortrait(orienation)) ? keyboardRect.size.height : keyboardRect.size.width);
+    maxY += containerView.outerShadowInsets.bottom;
+    
+    // Ensure the popover is above the keyboard
+    CGFloat keyboardSize = ((UIInterfaceOrientationIsPortrait(orienation)) ? keyboardRect.size.height : keyboardRect.size.width);
+    maxY -= keyboardSize;
+    
+    CGPoint anchorCenterPt = (arrowDirection == WYPopoverArrowDirectionNone) ? CGPointMake((minX + maxX) / 2, (minY + maxY) / 2) : CGPointMake(CGRectGetMidX(viewFrame), CGRectGetMidY(viewFrame));
+    
+    containerView.arrowDirection = arrowDirection;
+    containerViewSize = [containerView sizeThatFits:contentViewSize];
+    
+    containerFrame = CGRectZero;
+    containerFrame.size = containerViewSize;
+    containerFrame.size.width = MIN(maxX - minX, containerFrame.size.width);
+    containerFrame.size.height = MIN(maxY - minY, containerFrame.size.height);
+    
+    containerFrame.origin = CGPointMake(anchorCenterPt.x - containerFrame.size.width / 2, anchorCenterPt.y - containerFrame.size.height / 2);
     
     if (arrowDirection == WYPopoverArrowDirectionDown)
     {
-        containerView.arrowDirection = WYPopoverArrowDirectionDown;
-        containerViewSize = [containerView sizeThatFits:contentViewSize];
-        
-        containerFrame = CGRectZero;
-        containerFrame.size = containerViewSize;
-        containerFrame.size.width = MIN(maxX - minX, containerFrame.size.width);
-        containerFrame.size.height = MIN(maxY - minY, containerFrame.size.height);
-        
-        containerView.frame = containerFrame;
-        
-        containerView.center = CGPointMake(viewFrame.origin.x + viewFrame.size.width / 2, viewFrame.origin.y + viewFrame.size.height / 2);
-        
-        containerFrame = containerView.frame;
-        
-        offset = 0;
-        
         if (containerFrame.origin.x < minX)
         {
             offset = minX - containerFrame.origin.x;
@@ -1723,12 +1725,12 @@ static CGFloat edgeSizeFromCornerRadius(CGFloat cornerRadius) {
         }
         else if (containerFrame.origin.x + containerFrame.size.width > maxX)
         {
-            offset = (containerView.frame.origin.x + containerView.frame.size.width) - maxX;
+            offset = (containerFrame.origin.x + containerFrame.size.width) - maxX;
             containerFrame.origin.x -= offset;
         }
         
         containerView.arrowOffset = offset;
-        offset = containerView.frame.size.height / 2 + viewFrame.size.height / 2 - containerView.outerShadowInsets.bottom;
+        offset = containerFrame.size.height / 2 + viewFrame.size.height / 2 - containerView.outerShadowInsets.bottom;
         
         containerFrame.origin.y -= offset;
         
@@ -1746,26 +1748,15 @@ static CGFloat edgeSizeFromCornerRadius(CGFloat cornerRadius) {
             
             containerFrame.origin.y += offset;
         }
+        else if (containerFrame.origin.y + containerFrame.size.height > maxY)
+        {
+            offset = (containerFrame.origin.y + containerFrame.size.height) - maxY;
+            containerFrame.origin.y -= offset;
+        }
     }
     
     if (arrowDirection == WYPopoverArrowDirectionUp)
     {
-        containerView.arrowDirection = WYPopoverArrowDirectionUp;
-        containerViewSize = [containerView sizeThatFits:contentViewSize];
-        
-        containerFrame = CGRectZero;
-        containerFrame.size = containerViewSize;
-        containerFrame.size.width = MIN(maxX - minX, containerFrame.size.width);
-        containerFrame.size.height = MIN(maxY - minY, containerFrame.size.height);
-        
-        containerView.frame = containerFrame;
-        
-        containerView.center = CGPointMake(viewFrame.origin.x + viewFrame.size.width / 2, viewFrame.origin.y + viewFrame.size.height / 2);
-        
-        containerFrame = containerView.frame;
-        
-        offset = 0;
-        
         if (containerFrame.origin.x < minX)
         {
             offset = minX - containerFrame.origin.x;
@@ -1774,12 +1765,12 @@ static CGFloat edgeSizeFromCornerRadius(CGFloat cornerRadius) {
         }
         else if (containerFrame.origin.x + containerFrame.size.width > maxX)
         {
-            offset = (containerView.frame.origin.x + containerView.frame.size.width) - maxX;
+            offset = (containerFrame.origin.x + containerFrame.size.width) - maxX;
             containerFrame.origin.x -= offset;
         }
         
         containerView.arrowOffset = offset;
-        offset = containerView.frame.size.height / 2 + viewFrame.size.height / 2 - containerView.outerShadowInsets.top;
+        offset = containerFrame.size.height / 2 + viewFrame.size.height / 2 - containerView.outerShadowInsets.top;
         
         containerFrame.origin.y += offset;
         
@@ -1798,21 +1789,7 @@ static CGFloat edgeSizeFromCornerRadius(CGFloat cornerRadius) {
     
     if (arrowDirection == WYPopoverArrowDirectionRight)
     {
-        containerView.arrowDirection = WYPopoverArrowDirectionRight;
-        containerViewSize = [containerView sizeThatFits:contentViewSize];
-        
-        containerFrame = CGRectZero;
-        containerFrame.size = containerViewSize;
-        containerFrame.size.width = MIN(maxX - minX, containerFrame.size.width);
-        containerFrame.size.height = MIN(maxY - minY, containerFrame.size.height);
-        
-        containerView.frame = containerFrame;
-        
-        containerView.center = CGPointMake(viewFrame.origin.x + viewFrame.size.width / 2, viewFrame.origin.y + viewFrame.size.height / 2);
-        
-        containerFrame = containerView.frame;
-        
-        offset = containerView.frame.size.width / 2 + viewFrame.size.width / 2 - containerView.outerShadowInsets.right;
+        offset = containerFrame.size.width / 2 + viewFrame.size.width / 2 - containerView.outerShadowInsets.right;
         
         containerFrame.origin.x -= offset;
         
@@ -1841,7 +1818,7 @@ static CGFloat edgeSizeFromCornerRadius(CGFloat cornerRadius) {
         }
         else if (containerFrame.origin.y + containerFrame.size.height > maxY)
         {
-            offset = (containerView.frame.origin.y + containerView.frame.size.height) - maxY;
+            offset = (containerFrame.origin.y + containerFrame.size.height) - maxY;
             containerFrame.origin.y -= offset;
         }
         
@@ -1850,20 +1827,7 @@ static CGFloat edgeSizeFromCornerRadius(CGFloat cornerRadius) {
     
     if (arrowDirection == WYPopoverArrowDirectionLeft)
     {
-        containerView.arrowDirection = WYPopoverArrowDirectionLeft;
-        containerViewSize = [containerView sizeThatFits:contentViewSize];
-        
-        containerFrame = CGRectZero;
-        containerFrame.size = containerViewSize;
-        containerFrame.size.width = MIN(maxX - minX, containerFrame.size.width);
-        containerFrame.size.height = MIN(maxY - minY, containerFrame.size.height);
-        containerView.frame = containerFrame;
-        
-        containerView.center = CGPointMake(viewFrame.origin.x + viewFrame.size.width / 2, viewFrame.origin.y + viewFrame.size.height / 2);
-        
-        containerFrame = containerView.frame;
-        
-        offset = containerView.frame.size.width / 2 + viewFrame.size.width / 2 - containerView.outerShadowInsets.left;
+        offset = containerFrame.size.width / 2 + viewFrame.size.width / 2 - containerView.outerShadowInsets.left;
         
         containerFrame.origin.x += offset;
         
@@ -1889,7 +1853,7 @@ static CGFloat edgeSizeFromCornerRadius(CGFloat cornerRadius) {
         }
         else if (containerFrame.origin.y + containerFrame.size.height > maxY)
         {
-            offset = (containerView.frame.origin.y + containerView.frame.size.height) - maxY;
+            offset = (containerFrame.origin.y + containerFrame.size.height) - maxY;
             containerFrame.origin.y -= offset;
         }
         
@@ -1898,26 +1862,13 @@ static CGFloat edgeSizeFromCornerRadius(CGFloat cornerRadius) {
     
     if (arrowDirection == WYPopoverArrowDirectionNone)
     {
-        containerView.arrowDirection = WYPopoverArrowDirectionNone;
-        containerViewSize = [containerView sizeThatFits:contentViewSize];
-        
-        containerFrame = CGRectZero;
-        containerFrame.size = containerViewSize;
-        containerFrame.size.width = MIN(maxX - minX, containerFrame.size.width);
-        containerFrame.size.height = MIN(maxY - minY, containerFrame.size.height);
-        containerView.frame = containerFrame;
-        
-        containerView.center = CGPointMake(minX + (maxX - minX) / 2, minY + (maxY - minY) / 2);
-        
-        containerFrame = containerView.frame;
-        
         containerView.arrowOffset = offset;
     }
     
-    containerView.frame = containerFrame;
-    
+    [UIView animateWithDuration:animationDuration animations:^{
+        containerView.frame = containerFrame;
+    }];
     containerView.wantsDefaultContentAppearance = wantsDefaultContentAppearance;
-    
     [containerView setViewController:viewController];
 }
 
@@ -2287,14 +2238,16 @@ static CGFloat GetStatusBarHeight() {
 {
     NSDictionary* info = [notification userInfo];
     keyboardRect = [[info objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
-    [self positionPopover];
+    CGFloat animationDuration = [[info objectForKey:UIKeyboardAnimationDurationUserInfoKey] floatValue];
+    [self positionPopover:animationDuration];
     [containerView setNeedsDisplay];
 }
 
 - (void)keyboardWillHide:(NSNotification *)notification
 {
     keyboardRect = CGRectZero;
-    [self positionPopover];
+    CGFloat animationDuration = [[notification userInfo][UIKeyboardAnimationDurationUserInfoKey] floatValue];
+    [self positionPopover:animationDuration];
     [containerView setNeedsDisplay];
 }
 

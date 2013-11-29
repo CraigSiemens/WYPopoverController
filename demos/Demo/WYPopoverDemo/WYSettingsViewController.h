@@ -12,5 +12,6 @@
 }
 
 @property (nonatomic, weak) IBOutlet UITableView* tableView;
+@property (weak, nonatomic) IBOutlet UITextField *textField;
 
 @end
